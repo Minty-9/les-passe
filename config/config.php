@@ -4,15 +4,15 @@
 // ============================================
 
 // ── Database ──
-define('DB_HOST', 'sql111.infinityfree.com');
-define('DB_NAME', 'if0_42311686_lespasse_db');
-define('DB_USER', 'if0_42311686');
-define('DB_PASS', 'Yfc6a8Jigd9aqzJ');          // XAMPP default is empty — change if yours differs
+define('DB_HOST', 'mysql.railway.internal');
+define('DB_NAME', 'railway');
+define('DB_USER', 'root');
+define('DB_PASS', 'jYeFhKEqKHpnhzRnHNnQwzxoOPebgFkk');          // XAMPP default is empty — change if yours differs
 define('DB_CHARSET', 'utf8mb4');
 
 // ── App ──
 define('APP_NAME', 'Les Passe');
-define('APP_URL',  'https://lespasseng.rf.gd');
+define('APP_URL',  '');
 define('APP_ENV',  'production');         // change to 'production' when live
 
 // ── Pass settings ──
