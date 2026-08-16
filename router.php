@@ -1,12 +1,24 @@
 <?php
-// PHP built-in server router for Railway deployment
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 $uri = urldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 
-// Serve static files directly if they exist
 if ($uri !== '/' && file_exists(__DIR__ . $uri)) {
     return false;
 }
 
-// Route everything through index.php
 $_GET['url'] = ltrim($uri, '/');
-require_once __DIR__ . '/index.php';
+
+try {
+    require_once __DIR__ . '/index.php';
+} catch (Throwable $e) {
+    http_response_code(500);
+    echo '<pre style="background:#1a1a1a;color:#ff6b6b;padding:20px;font-size:13px;">';
+    echo '<strong>Error:</strong> ' . $e->getMessage() . "\n";
+    echo '<strong>File:</strong> ' . $e->getFile() . "\n";
+    echo '<strong>Line:</strong> ' . $e->getLine() . "\n";
+    echo '<strong>Trace:</strong>' . "\n" . $e->getTraceAsString();
+    echo '</pre>';
+}
