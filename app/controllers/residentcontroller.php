@@ -1,19 +1,15 @@
 <?php
 class ResidentController {
-
     public function index() {
-        require_once 'views/resident/dashboard.php';
+        require_once __DIR__ . '/../../views/resident/dashboard.php';
     }
-
     public function generate() {
-        require_once 'views/resident/generate.php';
+        require_once __DIR__ . '/../../views/resident/generate.php';
     }
-
     public function pass(?string $id) {
         global $segments;
-        require_once 'views/resident/pass-card.php';
+        require_once __DIR__ . '/../../views/resident/pass-card.php';
     }
-
     public function cancel() {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             redirect(APP_URL . '/resident');

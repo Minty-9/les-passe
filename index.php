@@ -1,18 +1,17 @@
 <?php
 session_start();
 
-require_once 'config/config.php';
-require_once 'config/Database.php';
-require_once 'app/helpers/auth.php';
-require_once 'app/helpers/functions.php';
-
-require_once 'app/controllers/AuthController.php';
-require_once 'app/controllers/ResidentController.php';
-require_once 'app/controllers/GuardController.php';
-require_once 'app/controllers/AdminController.php';
-require_once 'app/models/User.php';
-require_once 'app/models/Pass.php';
-require_once 'app/models/EntryLog.php';
+require_once __DIR__ . '/config/config.php';
+require_once __DIR__ . '/config/Database.php';
+require_once __DIR__ . '/app/helpers/auth.php';
+require_once __DIR__ . '/app/helpers/functions.php';
+require_once __DIR__ . '/app/controllers/AuthController.php';
+require_once __DIR__ . '/app/controllers/ResidentController.php';
+require_once __DIR__ . '/app/controllers/GuardController.php';
+require_once __DIR__ . '/app/controllers/AdminController.php';
+require_once __DIR__ . '/app/models/User.php';
+require_once __DIR__ . '/app/models/Pass.php';
+require_once __DIR__ . '/app/models/EntryLog.php';
 
 $url        = isset($_GET['url']) ? $_GET['url'] : '';
 $url        = rtrim($url, '/');
