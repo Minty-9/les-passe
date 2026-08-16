@@ -1,4 +1,5 @@
 <?php
+// v2
 session_start();
 
 require_once __DIR__ . '/config/config.php';
