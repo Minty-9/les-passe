@@ -5,6 +5,7 @@ require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/Database.php';
 require_once __DIR__ . '/app/helpers/auth.php';
 require_once __DIR__ . '/app/helpers/functions.php';
+
 require_once __DIR__ . '/app/controllers/AuthController.php';
 require_once __DIR__ . '/app/controllers/ResidentController.php';
 require_once __DIR__ . '/app/controllers/GuardController.php';
