@@ -1,24 +1,27 @@
 <?php
 // ============================================
 //  Les Passe — App Configuration
+//  Reads from environment variables on Railway
+//  Falls back to local XAMPP values for dev
 // ============================================
 
 // ── Database ──
-define('DB_HOST', 'mysql.railway.internal');
-define('DB_NAME', 'railway');
-define('DB_USER', 'root');
-define('DB_PASS', 'jYeFhKEqKHpnhzRnHNnQwzxoOPebgFkk');          // XAMPP default is empty — change if yours differs
+define('DB_HOST',    $_ENV['MYSQLHOST']          ?? 'localhost');
+define('DB_NAME',    $_ENV['MYSQLDATABASE']      ?? 'lespasse_db');
+define('DB_USER',    $_ENV['MYSQLUSER']          ?? 'root');
+define('DB_PASS',    $_ENV['MYSQLPASSWORD']      ?? '');
+define('DB_PORT',    $_ENV['MYSQLPORT']          ?? '3306');
 define('DB_CHARSET', 'utf8mb4');
 
 // ── App ──
 define('APP_NAME', 'Les Passe');
-define('APP_URL',  '');
-define('APP_ENV',  'production');         // change to 'production' when live
+define('APP_URL',  rtrim($_ENV['APP_URL'] ?? 'http://localhost/lespasse', '/'));
+define('APP_ENV',  $_ENV['APP_ENV'] ?? 'development');
 
 // ── Pass settings ──
-define('PASS_DURATIONS', [1, 3, 6]);       // allowed durations in hours
-define('PASS_WARN_MINS', 15);              // minutes before expiry to show warning
-define('CODE_LENGTH', 6);                  // digits in access code
+define('PASS_DURATIONS', [1, 3, 6]);
+define('PASS_WARN_MINS', 15);
+define('CODE_LENGTH', 6);
 
 // ── Error display ──
 if (APP_ENV === 'development') {
