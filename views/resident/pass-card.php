@@ -1,18 +1,14 @@
 <?php
-// Get pass ID from URL — /resident/pass/42
 $passId    = (int) ($segments[2] ?? 0);
 $passModel = new Pass();
 $pass      = $passModel->findById($passId);
 
-// Must exist and belong to this resident
 if (!$pass || (int)$pass['resident_id'] !== current_user_id()) {
     set_flash('error', 'Pass not found.');
     redirect(APP_URL . '/resident');
 }
 
-// Auto-expire if time is up
 if ($pass['status'] === 'active' && strtotime($pass['expires_at']) <= time()) {
-    // Update in DB
     Database::connect()->prepare("UPDATE passes SET status='expired' WHERE id=?")->execute([$pass['id']]);
     $pass['status'] = 'expired';
 }
@@ -20,6 +16,28 @@ if ($pass['status'] === 'active' && strtotime($pass['expires_at']) <= time()) {
 $isActive   = pass_is_valid($pass);
 $isExpiring = $isActive && pass_is_expiring($pass);
 $remaining  = time_remaining($pass['expires_at']);
+
+// WhatsApp share text — code only, no site link
+$expiryTime   = date('g:i A', strtotime($pass['expires_at']));
+$waTextCode   = urlencode(
+    "Hi! Here is your gate pass for Greenfield Estate.\n\n" .
+    "Visitor: " . $pass['visitor_name'] . "\n" .
+    "Access code: " . format_code($pass['code']) . "\n" .
+    "Valid for: " . duration_label($pass['duration_hrs']) . "\n" .
+    "Expires: " . $expiryTime . "\n\n" .
+    "Show this code to security at the gate."
+);
+
+// WhatsApp share — QR card link (visitor opens on phone, guard scans)
+$passUrl    = APP_URL . '/resident/pass/' . $pass['id'];
+$waTextQR   = urlencode(
+    "Hi! Here is your gate pass for Greenfield Estate.\n\n" .
+    "Visitor: " . $pass['visitor_name'] . "\n" .
+    "Access code: " . format_code($pass['code']) . "\n" .
+    "Valid for: " . duration_label($pass['duration_hrs']) . "\n" .
+    "Expires: " . $expiryTime . "\n\n" .
+    "Open this link at the gate to show your QR code:\n" . $passUrl
+);
 ?>
 <?php ob_start(); ?>
 
@@ -27,15 +45,9 @@ $remaining  = time_remaining($pass['expires_at']);
   <a href="<?= APP_URL ?>/resident" class="btn btn-outline btn-sm" style="margin-bottom:24px;">← Back to dashboard</a>
 
   <!-- PASS CARD -->
-  <div style="
-    background:var(--bg2);
-    border:1px solid <?= $isExpiring ? 'rgba(240,136,62,0.4)' : ($isActive ? 'var(--border-h)' : 'var(--border)') ?>;
-    border-radius:var(--rl);
-    overflow:hidden;
-    margin-bottom:16px;
-  ">
+  <div style="background:var(--bg2);border:1px solid <?= $isExpiring ? 'rgba(240,136,62,0.4)' : ($isActive ? 'var(--border-h)' : 'var(--border)') ?>;border-radius:var(--rl);overflow:hidden;margin-bottom:16px;">
 
-    <!-- Card header -->
+    <!-- Header -->
     <div style="background:#0d1117;padding:18px 24px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
       <div>
         <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--greent);letter-spacing:-0.01em;">Les Passe</div>
@@ -61,20 +73,22 @@ $remaining  = time_remaining($pass['expires_at']);
         <?php endif; ?>
       </div>
 
-      <!-- Visitor name -->
+      <!-- Visitor -->
       <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Visitor</div>
       <div style="font-size:20px;font-weight:500;margin-bottom:20px;"><?= e($pass['visitor_name']) ?></div>
 
-      <!-- Code block -->
+      <!-- Code + QR -->
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:20px;text-align:center;margin-bottom:16px;<?= !$isActive ? 'opacity:0.35;' : '' ?>">
         <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Access code</div>
-        <div style="font-family:monospace;font-size:36px;font-weight:500;letter-spacing:0.2em;color:var(--greent);margin-bottom:14px;">
+        <div style="font-family:monospace;font-size:36px;font-weight:500;letter-spacing:0.2em;color:var(--greent);margin-bottom:<?= $isActive ? '16px' : '0' ?>;">
           <?= format_code($pass['code']) ?>
         </div>
-        <!-- QR Code -->
+        <?php if ($isActive): ?>
         <div style="display:inline-block;background:#fff;padding:8px;border-radius:8px;">
           <?= qr_code_img($pass['code'], 140) ?>
         </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:10px;">Guard can scan this QR at the gate</div>
+        <?php endif; ?>
       </div>
 
       <?php if ($isActive): ?>
@@ -111,19 +125,27 @@ $remaining  = time_remaining($pass['expires_at']);
       <!-- Actions -->
       <?php if ($isActive): ?>
       <div style="display:flex;flex-direction:column;gap:9px;">
+
+        <!-- Copy code -->
         <button onclick="copyCode('<?= $pass['code'] ?>')" class="btn btn-outline" style="width:100%;justify-content:center;">
-          📋 Copy code
+          📋 Copy access code
         </button>
-        <a href="https://wa.me/?text=<?= urlencode(
-          "Hi! Here is your visitor pass for Greenfield Estate.\n\n" .
-          "Access code: " . format_code($pass['code']) . "\n" .
-          "Valid for: " . duration_label($pass['duration_hrs']) . "\n" .
-          "Expires: " . date('g:i A', strtotime($pass['expires_at'])) . "\n\n" .
-          "Show this code to security at the gate.\n" .
-          "View pass: " . APP_URL . "/resident/pass/" . $pass['id']
-        ) ?>" target="_blank" class="btn btn-green" style="width:100%;justify-content:center;">
-          Share via WhatsApp ↗
+
+        <!-- Share options label -->
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;text-align:center;margin:4px 0 2px;">Share via WhatsApp</div>
+
+        <!-- Share code only -->
+        <a href="https://wa.me/?text=<?= $waTextCode ?>" target="_blank"
+           style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:var(--r);background:#25D366;color:#fff;font-size:13px;font-weight:600;text-decoration:none;">
+          📱 Send code only
         </a>
+
+        <!-- Share QR card link -->
+        <a href="https://wa.me/?text=<?= $waTextQR ?>" target="_blank"
+           style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:var(--r);background:transparent;color:#25D366;font-size:13px;font-weight:500;text-decoration:none;border:1px solid rgba(37,211,102,0.35);">
+          🔲 Send code + QR card link
+        </a>
+
       </div>
       <?php else: ?>
       <a href="<?= APP_URL ?>/resident/generate" class="btn btn-outline" style="width:100%;justify-content:center;">
@@ -131,16 +153,15 @@ $remaining  = time_remaining($pass['expires_at']);
       </a>
       <?php endif; ?>
 
-    </div><!-- /padding -->
+    </div>
 
-    <!-- Card footer -->
+    <!-- Footer -->
     <div style="background:var(--bg3);padding:10px 24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:11px;color:var(--muted);">
       <span>lespasse.ng</span>
       <span>Greenfield Estate</span>
     </div>
 
-  </div><!-- /card -->
-
+  </div>
 </div>
 
 <style>
@@ -148,40 +169,35 @@ $remaining  = time_remaining($pass['expires_at']);
 </style>
 
 <script>
-  function copyCode(code) {
-    navigator.clipboard.writeText(code).then(() => {
-      const btn = document.querySelector('[onclick^="copyCode"]');
-      const orig = btn.innerHTML;
-      btn.innerHTML = '✓ Copied!';
-      btn.style.color = 'var(--greent)';
-      setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
-    });
-  }
+function copyCode(code) {
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.querySelector('[onclick^="copyCode"]');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Copied!';
+    btn.style.color = 'var(--greent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
 
-  <?php if ($isActive): ?>
-  // Live countdown
-  const expiresAt = <?= strtotime($pass['expires_at']) ?> * 1000;
-  function updateCountdown() {
-    const diff = Math.floor((expiresAt - Date.now()) / 1000);
-    if (diff <= 0) { document.getElementById('countdown').textContent = 'Expired'; location.reload(); return; }
-    const h = Math.floor(diff / 3600);
-    const m = Math.floor((diff % 3600) / 60);
-    const s = diff % 60;
-    let str = '';
-    if (h > 0) str = h + 'h ' + m + 'm';
-    else if (m > 0) str = m + 'm ' + s + 's';
-    else str = s + 's';
-    document.getElementById('countdown').textContent = str;
-    // Turn warn colour under 15 mins
-    if (diff < 900) document.getElementById('countdown').style.color = 'var(--warn)';
-  }
-  updateCountdown();
-  setInterval(updateCountdown, 1000);
-  <?php endif; ?>
+<?php if ($isActive): ?>
+const expiresAt = <?= strtotime($pass['expires_at']) ?> * 1000;
+function updateCountdown() {
+  const diff = Math.floor((expiresAt - Date.now()) / 1000);
+  if (diff <= 0) { document.getElementById('countdown').textContent = 'Expired'; location.reload(); return; }
+  const h = Math.floor(diff / 3600);
+  const m = Math.floor((diff % 3600) / 60);
+  const s = diff % 60;
+  let str = h > 0 ? h + 'h ' + m + 'm' : m > 0 ? m + 'm ' + s + 's' : s + 's';
+  document.getElementById('countdown').textContent = str;
+  if (diff < 900) document.getElementById('countdown').style.color = 'var(--warn)';
+}
+updateCountdown();
+setInterval(updateCountdown, 1000);
+<?php endif; ?>
 </script>
 
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Pass — ' . $pass['visitor_name'];
-require_once 'views/layouts/base.php';
+require_once __DIR__ . '/../../views/layouts/base.php';
 ?>
