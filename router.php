@@ -1,4 +1,10 @@
 <?php
+// Serve manifest.json directly
+if ($uri === '/manifest.json') {
+    header('Content-Type: application/json');
+    readfile(__DIR__ . '/manifest.json');
+    exit;
+}
 
 $uri = urldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 
