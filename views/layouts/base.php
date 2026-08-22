@@ -9,25 +9,23 @@
   <link rel="icon" type="image/x-icon" href="/public/assets/icons/favicon.ico" />
   <link rel="icon" type="image/png" sizes="32x32" href="/public/assets/icons/favicon-32.png" />
   <link rel="icon" type="image/png" sizes="16x16" href="/public/assets/icons/favicon-16.png" />
-  <link rel="apple-touch-icon" sizes="192x192" href="/public/assets/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="/public/assets/icons/apple-touch-icon.png" />
 
-  <!-- PWA Manifest -->
+  <!-- PWA -->
   <link rel="manifest" href="/manifest.json" />
-  <meta name="theme-color" content="#30dc80" />
+  <meta name="theme-color" content="#0d1117" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   <meta name="apple-mobile-web-app-title" content="Les Passe" />
 
-  <!-- OG / Social sharing -->
+  <!-- OG -->
   <meta property="og:title" content="<?= isset($pageTitle) ? e($pageTitle) . ' — Les Passe' : 'Les Passe — Estate Visitor Access System' ?>" />
   <meta property="og:description" content="Smart gate pass system for gated estates. Residents generate time-limited visitor passes. Guards verify instantly." />
   <meta property="og:image" content="<?= APP_URL ?>/public/assets/og-image.png" />
   <meta property="og:url" content="<?= APP_URL ?>" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Les Passe" />
-  <meta name="twitter:description" content="Smart estate visitor gate pass system for Lagos gated communities." />
   <meta name="twitter:image" content="<?= APP_URL ?>/public/assets/og-image.png" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -54,6 +52,24 @@
       --r:        10px;
       --rl:       16px;
     }
+
+    /* SPLASH LOADER */
+    #splash {
+      position: fixed; inset: 0; z-index: 9999;
+      background: #0d1117;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 20px;
+      transition: opacity 0.4s ease;
+    }
+    #splash.hidden { opacity: 0; pointer-events: none; }
+    #splash img { width: 80px; height: 80px; animation: splashPulse 1.2s ease-in-out infinite; }
+    #splash-text { font-family: 'DM Sans', sans-serif; font-size: 13px; color: rgba(48,220,128,0.6); letter-spacing: 0.08em; }
+    .splash-bar { width: 120px; height: 2px; background: rgba(48,220,128,0.15); border-radius: 2px; overflow: hidden; }
+    .splash-fill { height: 100%; width: 0%; background: #30dc80; border-radius: 2px; animation: splashLoad 0.8s ease forwards; animation-delay: 0.1s; }
+    @keyframes splashPulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(0.92);opacity:0.7} }
+    @keyframes splashLoad  { to { width: 100%; } }
+
     body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; font-size:15px; line-height:1.65; -webkit-font-smoothing:antialiased; min-height:100vh; display:flex; flex-direction:column; }
     a { color:var(--greent); text-decoration:none; }
     a:hover { text-decoration:underline; }
@@ -64,32 +80,34 @@
 
     /* NAV */
     .topnav { background:rgba(13,17,23,0.92); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; }
-    .topnav-inner { max-width:1100px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; padding:14px 24px; }
-    .nav-logo { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; color:var(--greent); letter-spacing:-0.01em; text-decoration:none; }
-    .nav-user { display:flex; align-items:center; gap:14px; font-size:13px; color:var(--muted); }
+    .topnav-inner { max-width:1100px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; padding:12px 20px; }
+    .nav-logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
+    .nav-logo img { width:32px; height:32px; }
+    .nav-logo-text { font-family:'Syne',sans-serif; font-size:17px; font-weight:800; color:var(--greent); letter-spacing:-0.01em; }
+    .nav-user { display:flex; align-items:center; gap:12px; font-size:13px; color:var(--muted); }
     .nav-role { font-size:11px; padding:3px 10px; border-radius:999px; background:var(--greenbg); border:1px solid var(--border); color:var(--greent); text-transform:capitalize; }
     .nav-logout { font-size:13px; color:var(--muted); border:1px solid rgba(255,255,255,0.09); padding:5px 13px; border-radius:var(--r); transition:all 0.2s; text-decoration:none; }
     .nav-logout:hover { color:var(--text); border-color:rgba(255,255,255,0.22); }
 
     /* LAYOUT */
-    .page { max-width:1060px; margin:0 auto; padding:40px 24px 60px; flex:1; }
-    .page-title { font-family:'Syne',sans-serif; font-size:clamp(22px,3.5vw,30px); font-weight:700; letter-spacing:-0.02em; margin-bottom:4px; }
-    .page-sub { font-size:14px; color:var(--muted); margin-bottom:32px; }
+    .page { max-width:1060px; margin:0 auto; padding:36px 20px 60px; flex:1; }
+    .page-title { font-family:'Syne',sans-serif; font-size:clamp(20px,3.5vw,28px); font-weight:700; letter-spacing:-0.02em; margin-bottom:4px; }
+    .page-sub { font-size:14px; color:var(--muted); margin-bottom:28px; }
 
     /* CARDS */
-    .card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--rl); padding:24px; }
+    .card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--rl); padding:22px; }
     .card+.card { margin-top:16px; }
 
     /* STAT GRID */
-    .stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:28px; }
-    .stat-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--rl); padding:20px 22px; }
-    .stat-num { font-family:'Syne',sans-serif; font-size:28px; font-weight:700; margin-bottom:2px; }
-    .stat-label { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; }
+    .stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:24px; }
+    .stat-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--rl); padding:18px 20px; }
+    .stat-num { font-family:'Syne',sans-serif; font-size:26px; font-weight:700; margin-bottom:2px; }
+    .stat-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; }
 
     /* TABLE */
     .tbl { width:100%; border-collapse:collapse; font-size:14px; }
-    .tbl th { text-align:left; font-size:11px; font-weight:500; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; padding:10px 14px; border-bottom:1px solid var(--border); }
-    .tbl td { padding:12px 14px; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:middle; }
+    .tbl th { text-align:left; font-size:11px; font-weight:500; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; padding:10px 12px; border-bottom:1px solid var(--border); }
+    .tbl td { padding:11px 12px; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:middle; }
     .tbl tr:last-child td { border-bottom:none; }
     .tbl tr:hover td { background:rgba(255,255,255,0.02); }
 
@@ -104,7 +122,7 @@
     .badge-denied    { background:rgba(248,81,73,0.1);   color:#f85149; border:1px solid rgba(248,81,73,0.2);  }
 
     /* BUTTONS */
-    .btn { display:inline-flex; align-items:center; gap:7px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; padding:10px 20px; border-radius:var(--r); border:none; cursor:pointer; transition:all 0.18s; text-decoration:none; }
+    .btn { display:inline-flex; align-items:center; gap:7px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; padding:10px 18px; border-radius:var(--r); border:none; cursor:pointer; transition:all 0.18s; text-decoration:none; }
     .btn:hover { text-decoration:none; }
     .btn-green   { background:var(--green); color:#0d1117; }
     .btn-green:hover { background:var(--greend); transform:translateY(-1px); }
@@ -112,44 +130,53 @@
     .btn-outline:hover { border-color:rgba(255,255,255,0.26); background:rgba(255,255,255,0.04); }
     .btn-danger  { background:transparent; color:var(--danger); border:1px solid rgba(248,81,73,0.25); }
     .btn-danger:hover { background:rgba(248,81,73,0.08); }
-    .btn-sm { font-size:12px; padding:6px 13px; }
+    .btn-sm { font-size:12px; padding:6px 12px; }
 
     /* FORMS */
-    .form-group { margin-bottom:16px; }
-    .form-group label { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
+    .form-group { margin-bottom:15px; }
+    .form-group label { display:block; font-size:12px; color:var(--muted); margin-bottom:5px; }
     .form-input { width:100%; background:var(--bg); border:1px solid rgba(255,255,255,0.10); border-radius:var(--r); color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px; padding:10px 13px; outline:none; transition:border-color 0.2s; }
     .form-input:focus { border-color:rgba(74,222,128,0.4); }
     select.form-input { cursor:pointer; }
     textarea.form-input { resize:vertical; min-height:80px; }
 
     /* FLASH */
-    .flash { padding:12px 16px; border-radius:var(--r); font-size:14px; margin-bottom:20px; }
+    .flash { padding:12px 16px; border-radius:var(--r); font-size:14px; margin-bottom:18px; }
     .flash-error   { background:rgba(248,81,73,0.10);  border:1px solid rgba(248,81,73,0.25);  color:#f85149; }
     .flash-success { background:rgba(34,197,94,0.10);  border:1px solid rgba(34,197,94,0.25);  color:#4ade80; }
     .flash-warn    { background:rgba(240,136,62,0.10); border:1px solid rgba(240,136,62,0.25); color:#f0883e; }
 
-    hr { border:none; border-top:1px solid var(--border); margin:24px 0; }
+    hr { border:none; border-top:1px solid var(--border); margin:22px 0; }
 
-    /* EMPTY */
-    .empty { text-align:center; padding:48px 24px; color:var(--muted); font-size:14px; }
-    .empty-icon { font-size:32px; margin-bottom:12px; opacity:0.4; }
+    .empty { text-align:center; padding:44px 20px; color:var(--muted); font-size:14px; }
+    .empty-icon { font-size:30px; margin-bottom:10px; opacity:0.4; }
 
-    /* RESPONSIVE */
     @media (max-width:600px) {
-      .page { padding:20px 16px 40px; }
+      .page { padding:18px 14px 40px; }
       .stat-grid { grid-template-columns:1fr 1fr; }
-      .tbl th,.tbl td { padding:10px 10px; }
+      .tbl th,.tbl td { padding:9px 8px; font-size:13px; }
       .hide-mobile { display:none; }
-      .topnav-inner { padding:12px 16px; }
+      .topnav-inner { padding:10px 14px; }
+      .btn { padding:9px 14px; font-size:13px; }
     }
   </style>
   <?php if (isset($extraHead)) echo $extraHead; ?>
 </head>
 <body>
 
+<!-- SPLASH LOADER -->
+<div id="splash">
+  <img src="/public/assets/icons/icon-192.png" alt="Les Passe" />
+  <div class="splash-bar"><div class="splash-fill"></div></div>
+  <div id="splash-text">Les Passe</div>
+</div>
+
 <nav class="topnav">
   <div class="topnav-inner">
-    <a href="<?= APP_URL ?>" class="nav-logo">Les Passe</a>
+    <a href="<?= APP_URL ?>" class="nav-logo">
+      <img src="/public/assets/icons/favicon-32.png" alt="Les Passe logo" />
+      <span class="nav-logo-text">Les Passe</span>
+    </a>
     <?php if (is_logged_in()): ?>
     <div class="nav-user">
       <span class="hide-mobile"><?= e(current_user_name()) ?></span>
@@ -171,9 +198,19 @@
   <?php echo $content ?? ''; ?>
 </div>
 
-<footer style="text-align:center;padding:20px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);">
+<footer style="text-align:center;padding:18px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);">
   Les Passe &copy; <?= date('Y') ?> &nbsp;·&nbsp; Estate visitor access system
 </footer>
+
+<script>
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      const splash = document.getElementById('splash');
+      if (splash) splash.classList.add('hidden');
+      setTimeout(() => { if (splash) splash.remove(); }, 450);
+    }, 600);
+  });
+</script>
 
 </body>
 </html>
