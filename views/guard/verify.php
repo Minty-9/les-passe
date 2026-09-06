@@ -15,81 +15,172 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!$pass) {
             $result = 'denied_invalid';
-            $logModel->record(['estate_id' => current_estate_id(), 'pass_id' => null, 'guard_id' => current_user_id(), 'code_entered' => $codeEntered, 'result' => 'denied_invalid']);
+            $logModel->record(['estate_id'=>current_estate_id(),'pass_id'=>null,'guard_id'=>current_user_id(),'code_entered'=>$codeEntered,'result'=>'denied_invalid']);
         } elseif ($pass['status'] === 'used') {
             $result = 'denied_used';
-            $logModel->record(['estate_id' => current_estate_id(), 'pass_id' => $pass['id'], 'guard_id' => current_user_id(), 'code_entered' => $codeEntered, 'result' => 'denied_used']);
+            $logModel->record(['estate_id'=>current_estate_id(),'pass_id'=>$pass['id'],'guard_id'=>current_user_id(),'code_entered'=>$codeEntered,'result'=>'denied_used']);
         } elseif ($pass['status'] === 'cancelled' || $pass['status'] === 'expired' || strtotime($pass['expires_at']) <= time()) {
             $result = 'denied_expired';
             if ($pass['status'] === 'active') {
                 Database::connect()->prepare("UPDATE passes SET status='expired' WHERE id=?")->execute([$pass['id']]);
             }
-            $logModel->record(['estate_id' => current_estate_id(), 'pass_id' => $pass['id'], 'guard_id' => current_user_id(), 'code_entered' => $codeEntered, 'result' => 'denied_expired']);
+            $logModel->record(['estate_id'=>current_estate_id(),'pass_id'=>$pass['id'],'guard_id'=>current_user_id(),'code_entered'=>$codeEntered,'result'=>'denied_expired']);
         } else {
             $result = 'granted';
             $passModel->markUsed($pass['id']);
-            $logModel->record(['estate_id' => current_estate_id(), 'pass_id' => $pass['id'], 'guard_id' => current_user_id(), 'code_entered' => $codeEntered, 'result' => 'granted']);
+            $logModel->record(['estate_id'=>current_estate_id(),'pass_id'=>$pass['id'],'guard_id'=>current_user_id(),'code_entered'=>$codeEntered,'result'=>'granted']);
         }
     }
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['code'])) {
-    $_POST['code'] = $_GET['code'];
-    $_SERVER['REQUEST_METHOD'] = 'POST';
-    header('Location: ' . APP_URL . '/guard/verify');
-    exit;
 }
 ?>
 <?php ob_start(); ?>
 
-<div style="max-width:440px;margin:0 auto;">
+<style>
+/* Guard verify — bold full-screen results */
+.verify-wrap { max-width: 420px; margin: 0 auto; }
 
+/* RESULT SCREENS — fill the card boldly */
+.result-granted {
+  background: #052e16;
+  border: 2px solid #16a34a;
+  border-radius: 20px;
+  padding: 36px 24px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.result-denied {
+  background: #1c0a0a;
+  border: 2px solid #dc2626;
+  border-radius: 20px;
+  padding: 36px 24px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.result-warn {
+  background: #1c1200;
+  border: 2px solid #d97706;
+  border-radius: 20px;
+  padding: 36px 24px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.result-icon  { font-size: 64px; margin-bottom: 10px; line-height: 1; }
+.result-title-granted { font-family:'Syne',sans-serif; font-size:30px; font-weight:800; color:#4ade80; margin-bottom:6px; }
+.result-title-denied  { font-family:'Syne',sans-serif; font-size:30px; font-weight:800; color:#f87171; margin-bottom:6px; }
+.result-title-warn    { font-family:'Syne',sans-serif; font-size:30px; font-weight:800; color:#fbbf24; margin-bottom:6px; }
+.result-sub   { font-size:14px; color:rgba(255,255,255,0.55); margin-bottom:18px; }
+
+.result-details {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 14px 16px;
+  text-align: left;
+  font-size:14px;
+}
+.result-details .rd-row { display:flex; justify-content:space-between; margin-bottom:7px; }
+.result-details .rd-row:last-child { margin-bottom:0; }
+.result-details .rd-label { color:rgba(255,255,255,0.4); }
+.result-details .rd-val   { color:#fff; font-weight:500; }
+.result-note { font-size:12px; color:rgba(255,255,255,0.35); margin-top:12px; }
+
+/* CODE ENTRY — big for cheap Android */
+.verify-card { background:var(--bg2); border:1px solid var(--border); border-radius:16px; padding:22px; margin-bottom:14px; }
+.verify-label { font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.09em; margin-bottom:14px; }
+
+.code-input-big {
+  width: 100%;
+  background: #0d1117;
+  border: 2px solid rgba(48,220,128,0.25);
+  border-radius: 12px;
+  color: #4ade80;
+  font-family: monospace;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-align: center;
+  padding: 18px;
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 12px;
+}
+.code-input-big:focus { border-color: rgba(48,220,128,0.6); }
+
+.verify-btn {
+  width: 100%;
+  background: #30dc80;
+  color: #0d1117;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 15px;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.15s;
+}
+.verify-btn:hover { background: #22c55e; transform: translateY(-1px); }
+.verify-btn:active { transform: translateY(0); }
+
+/* QR Scanner */
+.qr-card { background:var(--bg2); border:1px solid var(--border); border-radius:16px; padding:22px; }
+.qr-start-btn { display:flex; align-items:center; justify-content:center; gap:8px; padding:12px 22px; border-radius:10px; border:1px solid rgba(255,255,255,0.12); background:transparent; color:var(--text); font-size:14px; cursor:pointer; transition:all 0.18s; }
+.qr-start-btn:hover { border-color:rgba(74,222,128,0.4); background:rgba(74,222,128,0.05); color:var(--green-t); }
+</style>
+
+<div class="verify-wrap">
   <h1 class="page-title" style="margin-bottom:4px;">Verify pass</h1>
   <p class="page-sub">Enter the 6-digit code or scan the visitor's QR.</p>
 
-  <!-- RESULT CARDS -->
+  <!-- RESULT: GRANTED -->
   <?php if ($result === 'granted' && $pass): ?>
-  <div style="background:rgba(34,197,94,0.08);border:2px solid rgba(34,197,94,0.4);border-radius:var(--rl);padding:28px 20px;text-align:center;margin-bottom:20px;">
-    <div style="font-size:56px;margin-bottom:8px;">✅</div>
-    <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:700;color:#4ade80;margin-bottom:4px;">Access Granted</div>
-    <div style="font-size:14px;color:var(--muted);margin-bottom:18px;">Visitor may proceed</div>
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px;text-align:left;font-size:14px;">
-      <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:var(--muted);">Visitor</span><span style="font-weight:500;"><?= e($pass['visitor_name']) ?></span></div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:var(--muted);">Resident</span><span>Unit <?= e($pass['unit']) ?></span></div>
-      <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Code</span><span style="font-family:monospace;letter-spacing:0.12em;"><?= format_code($pass['code']) ?></span></div>
+  <div class="result-granted">
+    <div class="result-icon">✅</div>
+    <div class="result-title-granted">Access Granted</div>
+    <div class="result-sub">Visitor may proceed through the gate</div>
+    <div class="result-details">
+      <div class="rd-row"><span class="rd-label">Visitor</span><span class="rd-val"><?= e($pass['visitor_name']) ?></span></div>
+      <div class="rd-row"><span class="rd-label">Resident</span><span class="rd-val">Unit <?= e($pass['unit']) ?> — <?= e($pass['resident_name']) ?></span></div>
+      <div class="rd-row"><span class="rd-label">Code used</span><span class="rd-val" style="font-family:monospace;letter-spacing:0.1em;"><?= format_code($pass['code']) ?></span></div>
     </div>
-    <div style="font-size:12px;color:var(--muted);margin-top:12px;">Pass marked as used — cannot be reused.</div>
+    <div class="result-note">Pass marked as used — cannot be reused.</div>
   </div>
 
+  <!-- RESULT: INVALID -->
   <?php elseif ($result === 'denied_invalid'): ?>
-  <div style="background:rgba(248,81,73,0.08);border:2px solid rgba(248,81,73,0.4);border-radius:var(--rl);padding:28px 20px;text-align:center;margin-bottom:20px;">
-    <div style="font-size:56px;margin-bottom:8px;">❌</div>
-    <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:700;color:#f85149;margin-bottom:4px;">Access Denied</div>
-    <div style="font-size:14px;color:var(--muted);">Code does not exist. Ask visitor to check with their host.</div>
+  <div class="result-denied">
+    <div class="result-icon">❌</div>
+    <div class="result-title-denied">Access Denied</div>
+    <div class="result-sub">This code does not exist in the system.</div>
+    <div class="result-details">
+      <div class="rd-row"><span class="rd-label">Action</span><span class="rd-val">Ask visitor to check with their host</span></div>
+    </div>
   </div>
 
+  <!-- RESULT: EXPIRED -->
   <?php elseif ($result === 'denied_expired'): ?>
-  <div style="background:rgba(248,81,73,0.08);border:2px solid rgba(248,81,73,0.4);border-radius:var(--rl);padding:28px 20px;text-align:center;margin-bottom:20px;">
-    <div style="font-size:56px;margin-bottom:8px;">⏰</div>
-    <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:700;color:#f85149;margin-bottom:4px;">Pass Expired</div>
-    <div style="font-size:14px;color:var(--muted);margin-bottom:12px;">This pass has expired or been cancelled.</div>
+  <div class="result-denied">
+    <div class="result-icon">⏰</div>
+    <div class="result-title-denied">Pass Expired</div>
+    <div class="result-sub">This pass has expired or been cancelled.</div>
     <?php if ($pass): ?>
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:left;font-size:13px;">
-      <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:var(--muted);">Visitor</span><span><?= e($pass['visitor_name']) ?></span></div>
-      <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Expired at</span><span><?= friendly_time($pass['expires_at']) ?></span></div>
+    <div class="result-details">
+      <div class="rd-row"><span class="rd-label">Visitor</span><span class="rd-val"><?= e($pass['visitor_name']) ?></span></div>
+      <div class="rd-row"><span class="rd-label">Expired at</span><span class="rd-val"><?= friendly_time($pass['expires_at']) ?></span></div>
     </div>
     <?php endif; ?>
   </div>
 
+  <!-- RESULT: ALREADY USED -->
   <?php elseif ($result === 'denied_used'): ?>
-  <div style="background:rgba(248,81,73,0.08);border:2px solid rgba(248,81,73,0.4);border-radius:var(--rl);padding:28px 20px;text-align:center;margin-bottom:20px;">
-    <div style="font-size:56px;margin-bottom:8px;">🔒</div>
-    <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:700;color:#f85149;margin-bottom:4px;">Already Used</div>
-    <div style="font-size:14px;color:var(--muted);margin-bottom:12px;">This pass has already been used at the gate.</div>
+  <div class="result-warn">
+    <div class="result-icon">🔒</div>
+    <div class="result-title-warn">Already Used</div>
+    <div class="result-sub">This pass was already used at the gate.</div>
     <?php if ($pass): ?>
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:left;font-size:13px;">
-      <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:var(--muted);">Visitor</span><span><?= e($pass['visitor_name']) ?></span></div>
-      <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Resident</span><span>Unit <?= e($pass['unit']) ?></span></div>
+    <div class="result-details">
+      <div class="rd-row"><span class="rd-label">Visitor</span><span class="rd-val"><?= e($pass['visitor_name']) ?></span></div>
+      <div class="rd-row"><span class="rd-label">Resident</span><span class="rd-val">Unit <?= e($pass['unit']) ?></span></div>
     </div>
     <?php endif; ?>
   </div>
@@ -98,40 +189,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['code'])) {
   <div class="flash flash-error" style="margin-bottom:16px;">Please enter a valid 6-digit code.</div>
   <?php endif; ?>
 
-  <!-- CODE ENTRY — big, easy to use on cheap Android -->
-  <div class="card" style="margin-bottom:14px;">
-    <div style="font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;">Enter access code</div>
+  <!-- CODE ENTRY -->
+  <div class="verify-card">
+    <div class="verify-label">Enter access code</div>
     <form method="POST" action="<?= APP_URL ?>/guard/verify" id="verify-form">
       <input
         type="tel"
         name="code"
         id="code-input"
-        class="form-input"
-        placeholder="000000"
+        class="code-input-big"
+        placeholder="· · · · · ·"
         maxlength="7"
         inputmode="numeric"
         autocomplete="off"
         autofocus
-        style="font-family:monospace;font-size:32px;letter-spacing:0.25em;text-align:center;padding:18px;margin-bottom:12px;"
       />
-      <button type="submit" class="btn btn-green" style="width:100%;justify-content:center;font-size:16px;padding:14px;">
-        Verify →
-      </button>
+      <button type="submit" class="verify-btn">Verify →</button>
     </form>
   </div>
 
   <!-- QR SCANNER -->
-  <div class="card">
-    <div style="font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Or scan QR code</div>
-    <div id="qr-reader" style="width:100%;border-radius:var(--r);overflow:hidden;background:var(--bg3);min-height:180px;display:flex;align-items:center;justify-content:center;">
-      <div id="qr-placeholder" style="text-align:center;padding:28px;">
-        <div style="font-size:32px;margin-bottom:10px;opacity:0.4;">📷</div>
-        <button onclick="startScanner()" class="btn btn-outline" style="font-size:13px;padding:10px 20px;">Start camera</button>
+  <div class="qr-card">
+    <div class="verify-label" style="margin-bottom:12px;">Or scan QR code</div>
+    <div id="qr-reader" style="width:100%;border-radius:10px;overflow:hidden;background:var(--bg3);min-height:160px;display:flex;align-items:center;justify-content:center;">
+      <div id="qr-placeholder" style="text-align:center;padding:24px;">
+        <div style="font-size:28px;margin-bottom:10px;opacity:0.4;">📷</div>
+        <button onclick="startScanner()" class="qr-start-btn">Start camera scan</button>
       </div>
     </div>
     <div id="qr-status" style="font-size:12px;color:var(--muted);text-align:center;margin-top:8px;display:none;">Scanning — point at QR code</div>
   </div>
-
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
@@ -144,10 +231,7 @@ input.addEventListener('input', () => {
   if (val.length > 6) val = val.slice(0, 6);
   input.value = val.length > 3 ? val.slice(0,3) + '·' + val.slice(3) : val;
 });
-
-form.addEventListener('submit', () => {
-  input.value = input.value.replace(/\D/g, '');
-});
+form.addEventListener('submit', () => { input.value = input.value.replace(/\D/g, ''); });
 
 let scanner = null;
 function startScanner() {
@@ -157,18 +241,15 @@ function startScanner() {
   scanner.start(
     { facingMode: 'environment' },
     { fps: 10, qrbox: { width: 200, height: 200 } },
-    (decodedText) => {
-      let code = decodedText;
-      const match = decodedText.match(/code=(\d{6})/);
+    (decoded) => {
+      let code = decoded;
+      const match = decoded.match(/code=(\d{6})/);
       if (match) code = match[1];
-      scanner.stop().then(() => {
-        input.value = code;
-        form.submit();
-      });
+      scanner.stop().then(() => { input.value = code; form.submit(); });
     },
     () => {}
   ).catch(() => {
-    document.getElementById('qr-placeholder').innerHTML = '<div style="color:var(--danger);font-size:13px;padding:16px;">Camera access denied. Use code entry above.</div>';
+    document.getElementById('qr-placeholder').innerHTML = '<div style="color:var(--danger);font-size:13px;padding:16px;">Camera denied. Use code entry above.</div>';
   });
 }
 </script>
