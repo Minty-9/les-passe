@@ -15,7 +15,7 @@ define('DB_CHARSET', 'utf8mb4');
 
 // ── App ──
 define('APP_NAME', 'Les Passe');
-define('APP_URL',  rtrim($_ENV['APP_URL'] ?? 'http://localhost/lespasse', '/'));
+define('APP_URL',  rtrim($_ENV['APP_URL'] ?? 'https://www.lespasse.ng', '/'));
 define('APP_ENV',  $_ENV['APP_ENV'] ?? 'development');
 
 // ── Pass settings ──
