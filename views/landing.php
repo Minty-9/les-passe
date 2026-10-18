@@ -570,7 +570,7 @@
     <div class="contact-grid">
       <div class="contact-info">
         <div class="section-eyebrow">Get in touch</div>
-        <h2>Let's set up your estate.</h2>
+        <h2>Let's set up your estate.</h2> 
         <p>Send us a message and we'll get back to you within 24 hours. We'll walk you through how Les Passe works, answer your questions, and set up a free trial for your estate.</p>
         <div class="contact-channels">
           <a href="https://wa.me/2349052369958?text=Hi%2C%20I%27m%20interested%20in%20Les%20Passe%20for%20my%20estate." target="_blank" class="contact-ch">
