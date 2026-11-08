@@ -19,7 +19,7 @@ $usedPasses     = count(array_filter($passes, fn($p) => $p['status'] === 'used')
 <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:28px;">
   <div>
     <h1 class="page-title">Welcome, <?= e(explode(' ', current_user_name())[0]) ?> 👋</h1>
-    <p class="page-sub">Unit <?= e($_SESSION['unit'] ?? '—') ?> &nbsp;·&nbsp; Greenfield Estate</p>
+    <p class="page-sub">Unit <?= e($_SESSION['unit'] ?? '—') ?> &nbsp;·&nbsp; <?= e(current_estate_name()) ?></p>
   </div>
   <a href="<?= APP_URL ?>/resident/generate" class="btn btn-green">
     + Generate visitor pass
