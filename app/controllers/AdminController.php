@@ -15,13 +15,16 @@ class AdminController {
         }
         $userId    = (int) ($_POST['user_id'] ?? 0);
         $newStatus = $_POST['new_status'] ?? 'active';
-        $newStatus = in_array($newStatus, ['active','suspended']) ? $newStatus : 'active';
+        $newStatus = in_array($newStatus, ['active', 'suspended'], true) ? $newStatus : 'active';
+
         $userModel = new User();
-        $updated   = $userModel->updateStatus($userId, $newStatus);
+        // Scoped to this admin's own estate
+        $updated   = $userModel->updateStatus($userId, $newStatus, current_estate_id());
+
         if ($updated) {
-            set_flash('success', $newStatus === 'active' ? 'Resident reactivated.' : 'Resident suspended.');
+            set_flash('success', $newStatus === 'active' ? 'Account reactivated.' : 'Account suspended.');
         } else {
-            set_flash('error', 'Could not update resident status.');
+            set_flash('error', 'Could not update that account.');
         }
         redirect(APP_URL . '/admin/residents');
     }
