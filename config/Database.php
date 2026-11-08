@@ -17,6 +17,7 @@ class Database {
 
             try {
                 self::$instance = new PDO($dsn, DB_USER, DB_PASS, $options);
+                self::$instance->exec("SET time_zone = '+01:00'");
             } catch (PDOException $e) {
                 die('<div style="font-family:sans-serif;padding:40px;color:#c00;">
                         <strong>Database connection failed.</strong><br>
