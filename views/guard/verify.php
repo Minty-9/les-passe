@@ -2,6 +2,7 @@
 $result   = null;
 $pass     = null;
 $logModel = new EntryLog();
+$estateId = current_estate_id();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $code        = preg_replace('/\D/', '', trim($_POST['code'] ?? ''));
@@ -11,24 +12,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = 'invalid_format';
     } else {
         $passModel = new Pass();
-        $pass      = $passModel->findByCode($codeEntered);
+        // Only passes issued in THIS guard's estate can be found
+        $pass = $passModel->findByCode($codeEntered, $estateId);
+
+        $log = function (string $res, ?int $passId) use ($logModel, $estateId, $codeEntered) {
+            $logModel->record([
+                'estate_id'    => $estateId,
+                'pass_id'      => $passId,
+                'guard_id'     => current_user_id(),
+                'code_entered' => $codeEntered,
+                'result'       => $res,
+            ]);
+        };
 
         if (!$pass) {
+            // Unknown code, or a code that belongs to another estate
             $result = 'denied_invalid';
-            $logModel->record(['estate_id'=>current_estate_id(),'pass_id'=>null,'guard_id'=>current_user_id(),'code_entered'=>$codeEntered,'result'=>'denied_invalid']);
+            $log('denied_invalid', null);
         } elseif ($pass['status'] === 'used') {
             $result = 'denied_used';
-            $logModel->record(['estate_id'=>current_estate_id(),'pass_id'=>$pass['id'],'guard_id'=>current_user_id(),'code_entered'=>$codeEntered,'result'=>'denied_used']);
-        } elseif ($pass['status'] === 'cancelled' || $pass['status'] === 'expired' || strtotime($pass['expires_at']) <= time()) {
+            $log('denied_used', (int) $pass['id']);
+        } elseif ($pass['status'] !== 'active' || strtotime($pass['expires_at']) <= time()) {
             $result = 'denied_expired';
             if ($pass['status'] === 'active') {
-                Database::connect()->prepare("UPDATE passes SET status='expired' WHERE id=?")->execute([$pass['id']]);
+                Database::connect()
+                    ->prepare("UPDATE passes SET status='expired' WHERE id=? AND estate_id=?")
+                    ->execute([$pass['id'], $estateId]);
             }
-            $logModel->record(['estate_id'=>current_estate_id(),'pass_id'=>$pass['id'],'guard_id'=>current_user_id(),'code_entered'=>$codeEntered,'result'=>'denied_expired']);
-        } else {
+            $log('denied_expired', (int) $pass['id']);
+        } elseif ($passModel->markUsed((int) $pass['id'], $estateId)) {
             $result = 'granted';
-            $passModel->markUsed($pass['id']);
-            $logModel->record(['estate_id'=>current_estate_id(),'pass_id'=>$pass['id'],'guard_id'=>current_user_id(),'code_entered'=>$codeEntered,'result'=>'granted']);
+            $log('granted', (int) $pass['id']);
+        } else {
+            // Another gate used this pass a split second ago
+            $result = 'denied_used';
+            $log('denied_used', (int) $pass['id']);
         }
     }
 }
