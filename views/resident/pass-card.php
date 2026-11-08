@@ -17,9 +17,10 @@ $isActive   = pass_is_valid($pass);
 $isExpiring = $isActive && pass_is_expiring($pass);
 $remaining  = time_remaining($pass['expires_at']);
 $expiryTime = date('g:i A', strtotime($pass['expires_at']));
+$estateName = current_estate_name();
 
 $waTextCode = urlencode(
-    "Hi! Here is your gate pass for Greenfield Estate.\n\n" .
+    "Hi! Here is your gate pass for " . $estateName . ".\n\n" .
     "Visitor: " . $pass['visitor_name'] . "\n" .
     "Access code: " . format_code($pass['code']) . "\n" .
     "Valid for: " . duration_label($pass['duration_hrs']) . "\n" .
@@ -29,7 +30,7 @@ $waTextCode = urlencode(
 
 $passUrl  = APP_URL . '/resident/pass/' . $pass['id'];
 $waTextQR = urlencode(
-    "Hi! Here is your gate pass for Greenfield Estate.\n\n" .
+    "Hi! Here is your gate pass for " . $estateName . ".\n\n" .
     "Visitor: " . $pass['visitor_name'] . "\n" .
     "Access code: " . format_code($pass['code']) . "\n" .
     "Valid for: " . duration_label($pass['duration_hrs']) . "\n" .
@@ -225,7 +226,7 @@ $waTextQR = urlencode(
 
     <div class="pass-card-footer">
       <span>lespasse.ng</span>
-      <span>Greenfield Estate</span>
+      <span><?= e($estateName) ?></span>
     </div>
   </div>
 </div>
