@@ -13,6 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Incorrect email or password.';
         } elseif ($user['status'] === 'suspended') {
             $error = 'Your account has been suspended. Contact your estate admin.';
+        } elseif (($user['estate_status'] ?? 'active') === 'suspended') {
+            $error = 'This estate\'s access is currently paused. Contact your estate admin.';
         } else {
             login_user($user);
             redirect_by_role();
