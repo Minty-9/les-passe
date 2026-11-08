@@ -22,7 +22,7 @@ $activeResidents = count(array_filter($residents, fn($r) => $r['status'] === 'ac
 <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:28px;">
   <div>
     <h1 class="page-title">Estate overview</h1>
-    <p class="page-sub">Greenfield Estate &nbsp;·&nbsp; <?= date('l, j F Y') ?></p>
+    <p class="page-sub"><?= e(current_estate_name()) ?> &nbsp;·&nbsp; <?= date('l, j F Y') ?></p>
   </div>
   <div style="display:flex;gap:10px;">
     <a href="<?= APP_URL ?>/admin/residents" class="btn btn-outline">Manage residents</a>
