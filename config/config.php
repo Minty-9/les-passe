@@ -5,6 +5,8 @@
 //  Falls back to local XAMPP values for dev
 // ============================================
 
+date_default_timezone_set('Africa/Lagos');
+
 // ── Database ──
 define('DB_HOST',    $_ENV['MYSQLHOST']          ?? 'localhost');
 define('DB_NAME',    $_ENV['MYSQLDATABASE']      ?? 'lespasse_db');
