@@ -152,7 +152,7 @@
     .empty-icon { font-size:30px; margin-bottom:10px; opacity:0.4; }
 
     @media (max-width:600px) {
-      .page { padding:18px 14px 40px; }
+      .page { width:100%; padding:18px 14px 40px; }
       .stat-grid { grid-template-columns:1fr 1fr; }
       .tbl th,.tbl td { padding:9px 8px; font-size:13px; }
       .hide-mobile { display:none; }
