@@ -3,7 +3,7 @@
 //  Les Passe — landing page (served at "/")
 //  Edit only the values in this first block.
 // ============================================================
-$waNumber  = '';                    // WhatsApp number, international format, no "+" (e.g. '2348012345678'). Empty = WhatsApp button hidden
+$waNumber  = '09052369958';                    // WhatsApp number, international format, no "+" (e.g. '2348012345678'). Empty = WhatsApp button hidden
 $instagram = '';                    // Instagram handle without "@". Empty = icon hidden
 $xHandle   = '';                    // X handle without "@". Empty = icon hidden
 $email     = 'hello@lespasse.ng';
