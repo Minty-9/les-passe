@@ -1,7 +1,7 @@
 <?php
 // Privacy Policy and Terms — one template, two documents ($legalPage is set by index.php)
-$bizName    = 'Les Passe';          // replace with your registered business name if different
-$bizAddress = 'Lagos, Nigeria';     // replace with your registered address
+$bizName    = 'LesPasse Technologies';          // replace with your registered business name if different
+$bizAddress = '10 Unity Close Shangisha Magodo Lagos, Nigeria';     // replace with your registered address
 $bizEmail   = 'hello@lespasse.ng';
 $updated    = 'November 2026';
 
