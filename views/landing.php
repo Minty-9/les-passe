@@ -577,7 +577,7 @@ $roleAdmin   = lp_shot('role-admin.webp', 'The estate admin dashboard showing to
     <p class="section-sub">Priced for Nigerian estates, from small closes to large communities. Billed per estate, not per resident.</p>
     <div class="founding">
       <?= lp_icon('key', 22) ?>
-      <p><strong>Founding estates:</strong> our first three estates get 60 days free and no setup fee, in return for honest feedback and permission to share a short case study. After that, every new estate starts with a 30-day free trial.</p>
+      <p><strong>Founding estates:</strong> our first three estates get 45 days free and no setup fee, in return for honest feedback and permission to share a short case study. After that, every new estate starts with a 30-day free trial.</p>
     </div>
     <div class="price-grid">
       <?php foreach ($plans as $p): ?>
