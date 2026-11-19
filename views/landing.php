@@ -14,7 +14,7 @@ $plans = [
     ['name' => 'Growth', 'size' => '31–200 residents', 'price' => '₦35,000', 'setup' => '₦75,000', 'popular' => true,
      'features' => ['Up to 200 resident accounts', 'Unlimited visitor passes', '10 guard accounts', '90 days of entry logs', 'WhatsApp sharing', 'Priority support, same-day replies']],
     ['name' => 'Estate Pro', 'size' => '201–2000+ residents', 'price' => '₦75,000', 'setup' => '₦100,000', 'popular' => false,
-     'features' => ['Unlimited resident accounts', 'Unlimited visitor passes', 'Unlimited guard accounts', 'Full entry history', 'Direct WhatsApp support line', 'Multiple gates (coming soon)', 'Custom estate branding (coming soon)']],
+     'features' => ['Unlimited resident accounts', 'Unlimited visitor passes', 'Unlimited guard accounts', 'Full entry history', 'Direct WhatsApp support line', 'Gate labels in entry logs (coming soon)', 'Custom estate branding (coming soon)']],
 ];
 
 $faqs = [
